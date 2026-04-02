@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Eudaimonia">
+  <meta name="theme-color" content="#0e0e0f">
+  <title>Eudaimonia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    :root {
+      --bg: #0e0e0f;
+      --surface: #1a1a1c;
+      --surface2: #242426;
+      --surface3: #2e2e31;
+      --border: rgba(255,255,255,0.07);
+      --border2: rgba(255,255,255,0.13);
+      --text: #f0ede8;
+      --muted: #7a7870;
+      --radius: 12px;
+      --J: #185FA5; --J-bg: rgba(12,68,124,0.18); --J-light: #85B7EB; --J-dim: #0c447c;
+      --G: #0F6E56; --G-bg: rgba(8,80,65,0.18); --G-light: #5DCAA5; --G-dim: #085041;
+      --R: #993C1D; --R-bg: rgba(113,43,19,0.18); --R-light: #F09595; --R-dim: #711B0D;
+      --S: #534AB7; --S-bg: rgba(60,52,137,0.18); --S-light: #AFA9EC; --S-dim: #3C3489;
+      --gold: #FAC775;
+      --font-mono: 'DM Mono', monospace;
+      --font-serif: 'Instrument Serif', Georgia, serif;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-mono);
+      overscroll-behavior: none;
+    }
+
+    .app {
+      max-width: 480px;
+      margin: 0 auto;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── Header ── */
+    .header {
+      padding: 16px 16px 0;
+      flex-shrink: 0;
+    }
+
+    .app-wordmark {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 22px;
+      color: var(--text);
+      letter-spacing: -0.3px;
+      margin-bottom: 14px;
+    }
+
+    .date-nav {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      background: var(--surface);
+      border: 0.5px solid var(--border2);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+    .date-nav button {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-size: 18px;
+      width: 44px;
+      height: 42px;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      flex-shrink: 0;
+      transition: color 0.15s;
+    }
+    .date-nav button:active { color: var(--text); }
+    .date-label {
+      flex: 1;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+    }
+    .date-today-btn {
+      font-size: 10px !important;
+      color: var(--muted) !important;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      width: auto !important;
+      padding: 0 10px;
+      border-left: 0.5px solid var(--border) !important;
+    }
+
+    /* ── Summary cards ── */
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    .cat-card {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 6px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .cat-card:active { opacity: 0.8; }
+    .cat-card .lbl { font-size: 9px; color: var(--muted); margin-bottom: 3px; letter-spacing: 0.8px; text-transform: uppercase; }
+    .cat-card .hrs { font-size: 16px; font-weight: 500; }
+    .cat-card.J .hrs { color: var(--J-light); }
+    .cat-card.G .hrs { color: var(--G-light); }
+    .cat-card.R .hrs { color: var(--R-light); }
+    .cat-card.S .hrs { color: var(--S-light); }
+    .cat-card.active-filter { border-color: var(--border2); background: var(--surface2); }
+
+    /* ── Budget bar ── */
+    .budget-bar {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+    }
+    .budget-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 7px;
+    }
+    .budget-row .bl { font-size: 10px; color: var(--muted); letter-spacing: 0.5px; }
+    .budget-row .bv { font-size: 12px; font-weight: 500; }
+    .bar-track {
+      height: 5px;
+      background: var(--surface2);
+      border-radius: 99px;
+      overflow: hidden;
+      display: flex;
+    }
+    .bar-seg { height: 100%; transition: width 0.4s cubic-bezier(0.4,0,0.2,1); }
+    .bar-seg.J { background: var(--J-light); }
+    .bar-seg.G { background: var(--G-light); }
+    .bar-seg.R { background: var(--R-light); }
+    .bar-seg.S { background: var(--S-light); }
+
+    /* ── Toolbar ── */
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      padding: 0 2px;
+    }
+    .toolbar-left { font-size: 10px; color: var(--muted); letter-spacing: 0.3px; }
+    .mode-toggle {
+      display: flex;
+      background: var(--surface2);
+      border-radius: 7px;
+      padding: 2px;
+      gap: 2px;
+    }
+    .mode-toggle button {
+      font-size: 10px;
+      padding: 4px 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      color: var(--muted);
+      background: transparent;
+      font-family: var(--font-mono);
+      letter-spacing: 0.3px;
+      transition: all 0.15s;
+    }
+    .mode-toggle button.active {
+      background: var(--surface3);
+      color: var(--text);
+    }
+
+    /* ── Slots ── */
+    .slots-wrap {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 16px 100px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .slots-wrap::-webkit-scrollbar { display: none; }
+
+    .hour-group { margin-bottom: 2px; }
+    .hour-label {
+      font-size: 9px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      padding: 6px 0 3px;
+      text-transform: uppercase;
+    }
+
+    .slot {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 9px;
+      border: 0.5px solid transparent;
+      transition: background 0.1s;
+      margin-bottom: 2px;
+    }
+    .slot:active { opacity: 0.75; }
+    .slot.has-J { background: var(--J-bg); border-color: rgba(24,95,165,0.35); }
+    .slot.has-G { background: var(--G-bg); border-color: rgba(15,110,86,0.35); }
+    .slot.has-R { background: var(--R-bg); border-color: rgba(153,60,29,0.35); }
+    .slot.has-S { background: var(--S-bg); border-color: rgba(83,74,183,0.35); }
+    .slot.filtered-out { opacity: 0.2; }
+
+    .slot-time {
+      font-size: 10px;
+      color: var(--muted);
+      min-width: 36px;
+      font-variant-numeric: tabular-nums;
+    }
+    .slot-cat {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 500;
+      border: 0.5px solid var(--border2);
+      background: var(--surface2);
+      color: var(--muted);
+      cursor: pointer;
+      user-select: none;
+      flex-shrink: 0;
+      transition: all 0.1s;
+    }
+    .slot-cat.J { background: var(--J-dim); border-color: var(--J); color: var(--J-light); }
+    .slot-cat.G { background: var(--G-dim); border-color: var(--G); color: var(--G-light); }
+    .slot-cat.R { background: var(--R-dim); border-color: var(--R); color: var(--R-light); }
+    .slot-cat.S { background: var(--S-dim); border-color: var(--S); color: var(--S-light); }
+
+    .slot-label {
+      flex: 1;
+      font-size: 12px;
+      color: var(--text);
+      min-width: 0;
+    }
+    .slot-label input {
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-size: 12px;
+      width: 100%;
+      outline: none;
+      font-family: var(--font-mono);
+    }
+    .slot-label input::placeholder { color: var(--muted); }
+    .slot-label .static {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .slot-label .static.empty { color: var(--muted); }
+
+    .slot-bonus {
+      font-size: 11px;
+      cursor: pointer;
+      padding: 3px 6px;
+      border-radius: 5px;
+      background: transparent;
+      border: 0.5px solid transparent;
+      color: var(--muted);
+      font-family: var(--font-mono);
+      flex-shrink: 0;
+      transition: all 0.15s;
+    }
+    .slot-bonus:active { transform: scale(0.9); }
+    .slot-bonus.active { background: rgba(250,199,117,0.15); border-color: rgba(250,199,117,0.4); color: var(--gold); }
+
+    .slot-done {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border2);
+      cursor: pointer;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+    .slot-done:active { transform: scale(0.85); }
+    .slot-done.checked {
+      background: var(--G-light);
+      border-color: var(--G-light);
+    }
+    .slot-done.checked::after {
+      content: '';
+      display: block;
+      width: 5px;
+      height: 9px;
+      border-right: 2px solid #085041;
+      border-bottom: 2px solid #085041;
+      transform: rotate(45deg) translate(-1px,-1px);
+    }
+
+    /* ── Category picker bottom sheet ── */
+    .sheet-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 90;
+      display: none;
+      backdrop-filter: blur(2px);
+    }
+    .sheet-overlay.open { display: block; }
+
+    .cat-sheet {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      max-width: 480px;
+      margin: 0 auto;
+      background: var(--surface);
+      border-top: 0.5px solid var(--border2);
+      border-radius: 18px 18px 0 0;
+      padding: 12px 16px 32px;
+      z-index: 100;
+      transform: translateY(100%);
+      transition: transform 0.28s cubic-bezier(0.32,0.72,0,1);
+    }
+    .cat-sheet.open { transform: translateY(0); }
+
+    .sheet-handle {
+      width: 36px;
+      height: 4px;
+      background: var(--border2);
+      border-radius: 99px;
+      margin: 0 auto 16px;
+    }
+    .sheet-slot-info {
+      font-size: 11px;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 14px;
+      letter-spacing: 0.3px;
+    }
+    .cat-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+    }
+    .cat-btn {
+      padding: 12px 4px 10px;
+      border-radius: 10px;
+      border: 0.5px solid var(--border);
+      background: var(--surface2);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: center;
+      font-family: var(--font-mono);
+      transition: transform 0.1s, opacity 0.1s;
+    }
+    .cat-btn:active { transform: scale(0.94); opacity: 0.8; }
+    .cat-btn .cat-name { font-size: 9px; margin-top: 4px; opacity: 0.7; display: block; letter-spacing: 0.5px; }
+    .cat-btn.J { background: var(--J-dim); border-color: var(--J); color: var(--J-light); }
+    .cat-btn.G { background: var(--G-dim); border-color: var(--G); color: var(--G-light); }
+    .cat-btn.R { background: var(--R-dim); border-color: var(--R); color: var(--R-light); }
+    .cat-btn.S { background: var(--S-dim); border-color: var(--S); color: var(--S-light); }
+    .cat-btn.clear { font-size: 16px; color: var(--muted); }
+
+    /* ── Bulk fill sheet ── */
+    .bulk-hint {
+      font-size: 10px;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 12px;
+      letter-spacing: 0.3px;
+    }
+    .bulk-btn {
+      display: block;
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px;
+      background: var(--surface2);
+      border: 0.5px solid var(--border2);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 11px;
+      font-family: var(--font-mono);
+      cursor: pointer;
+      letter-spacing: 0.3px;
+    }
+    .bulk-btn:active { opacity: 0.7; }
+
+    /* ── Bonus count badge ── */
+    .bonus-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      color: var(--gold);
+      background: rgba(250,199,117,0.12);
+      border: 0.5px solid rgba(250,199,117,0.25);
+      border-radius: 99px;
+      padding: 2px 8px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="app">
+  <div class="header">
+    <div class="app-wordmark">Eudaimonia</div>
+
+    <div class="date-nav">
+      <button onclick="changeDay(-1)">‹</button>
+      <div class="date-label" id="date-label"></div>
+      <button class="date-today-btn" onclick="goToday()">heute</button>
+      <button onclick="changeDay(1)">›</button>
+    </div>
+
+    <div class="summary">
+      <div class="cat-card J" onclick="toggleFilter('J')">
+        <div class="lbl">Job</div>
+        <div class="hrs" id="sum-J">0h</div>
+      </div>
+      <div class="cat-card G" onclick="toggleFilter('G')">
+        <div class="lbl">Good</div>
+        <div class="hrs" id="sum-G">0h</div>
+      </div>
+      <div class="cat-card R" onclick="toggleFilter('R')">
+        <div class="lbl">Rotting</div>
+        <div class="hrs" id="sum-R">0h</div>
+      </div>
+      <div class="cat-card S" onclick="toggleFilter('S')">
+        <div class="lbl">Sleep</div>
+        <div class="hrs" id="sum-S">0h</div>
+      </div>
+    </div>
+
+    <div class="budget-bar">
+      <div class="budget-row">
+        <span class="bl">verplant</span>
+        <span class="bv" id="planned-label">0 / 24h</span>
+      </div>
+      <div class="bar-track">
+        <div class="bar-seg J" id="bar-J" style="width:0%"></div>
+        <div class="bar-seg G" id="bar-G" style="width:0%"></div>
+        <div class="bar-seg R" id="bar-R" style="width:0%"></div>
+        <div class="bar-seg S" id="bar-S" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <span class="toolbar-left" id="slots-count"></span>
+      <div class="mode-toggle">
+        <button class="active" onclick="setMode('plan')" id="btn-plan">Planen</button>
+        <button onclick="setMode('track')" id="btn-track">Tracking</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="slots-wrap" id="slots-wrap"></div>
+</div>
+
+<!-- overlay -->
+<div class="sheet-overlay" id="overlay" onclick="closePicker()"></div>
+
+<!-- category picker sheet -->
+<div class="cat-sheet" id="cat-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-slot-info" id="sheet-info"></div>
+  <div class="cat-grid">
+    <button class="cat-btn J" onclick="assignCat('J')">J<span class="cat-name">Job</span></button>
+    <button class="cat-btn G" onclick="assignCat('G')">G<span class="cat-name">Good</span></button>
+    <button class="cat-btn R" onclick="assignCat('R')">R<span class="cat-name">Rotting</span></button>
+    <button class="cat-btn S" onclick="assignCat('S')">S<span class="cat-name">Sleep</span></button>
+    <button class="cat-btn clear" onclick="assignCat('')">✕<span class="cat-name">leer</span></button>
+  </div>
+  <div class="bulk-hint">Alle leeren Slots befüllen:</div>
+  <button class="bulk-btn" onclick="fillRemaining('J')">Alle leeren → Job</button>
+  <button class="bulk-btn" onclick="fillRemaining('G')">Alle leeren → Good</button>
+  <button class="bulk-btn" onclick="fillRemaining('S')">Alle leeren → Sleep</button>
+</div>
+
+<script>
+const CATS = ['J','G','R','S'];
+const CAT_NAMES = {J:'Job', G:'Good', R:'Rotting', S:'Sleep'};
+const TOTAL = 96;
+
+let currentDate = new Date();
+currentDate.setHours(0,0,0,0);
+let allData = {};
+let activeSlot = null;
+let mode = 'plan';
+let activeFilter = null;
+
+function dateKey(d) {
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+function getDay(d) {
+  const k = dateKey(d);
+  if (!allData[k]) {
+    allData[k] = Array.from({length: TOTAL}, () => ({cat:'', label:'', done:false, bonus:false}));
+  }
+  return allData[k];
+}
+
+function slotTime(i) {
+  const mins = i * 15;
+  return String(Math.floor(mins/60)%24).padStart(2,'0') + ':' + String(mins%60).padStart(2,'0');
+}
+
+function fmtH(slots) {
+  const h = slots * 0.25;
+  if (h === Math.floor(h)) return h + 'h';
+  const dec = (h % 1 === 0.25 || h % 1 === 0.75) ? '1' : '5';
+  return h.toFixed(dec === '1' ? 2 : 1) + 'h';
+}
+
+function render() {
+  const day = getDay(currentDate);
+  const today = dateKey(new Date()) === dateKey(currentDate);
+  const days = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+  const months = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+  const d = currentDate;
+  document.getElementById('date-label').textContent =
+    (today ? 'Heute' : days[d.getDay()]+', '+d.getDate()+'. '+months[d.getMonth()]);
+
+  const counts = {J:0,G:0,R:0,S:0};
+  let planned = 0, bonusCount = 0, doneCount = 0;
+  day.forEach(s => {
+    if (s.cat) { counts[s.cat]++; planned++; }
+    if (s.bonus) bonusCount++;
+    if (s.done) doneCount++;
+  });
+
+  CATS.forEach(c => {
+    document.getElementById('sum-'+c).textContent = fmtH(counts[c]);
+    document.getElementById('bar-'+c).style.width = (counts[c]/TOTAL*100).toFixed(2)+'%';
+    const card = document.querySelector('.cat-card.'+c);
+    card.classList.toggle('active-filter', activeFilter === c);
+  });
+
+  document.getElementById('planned-label').textContent = (planned*0.25).toFixed(1)+' / 24h';
+
+  let countTxt = planned+' Slots verplant';
+  if (mode === 'track' && bonusCount > 0) countTxt += ' · ⚡ '+bonusCount;
+  document.getElementById('slots-count').textContent = countTxt;
+
+  const wrap = document.getElementById('slots-wrap');
+  wrap.innerHTML = '';
+
+  // group by hour
+  for (let h = 0; h < 24; h++) {
+    const group = document.createElement('div');
+    group.className = 'hour-group';
+
+    const lbl = document.createElement('div');
+    lbl.className = 'hour-label';
+    lbl.textContent = String(h).padStart(2,'0') + ':00';
+    group.appendChild(lbl);
+
+    for (let q = 0; q < 4; q++) {
+      const i = h * 4 + q;
+      const s = day[i];
+      const filtered = activeFilter && s.cat !== activeFilter;
+
+      const div = document.createElement('div');
+      div.className = 'slot' + (s.cat ? ' has-'+s.cat : '') + (filtered ? ' filtered-out' : '');
+
+      const time = document.createElement('div');
+      time.className = 'slot-time';
+      time.textContent = slotTime(i);
+
+      const catBtn = document.createElement('div');
+      catBtn.className = 'slot-cat' + (s.cat ? ' '+s.cat : '');
+      catBtn.textContent = s.cat || '+';
+      catBtn.addEventListener('click', e => { e.stopPropagation(); openPicker(i); });
+
+      const labelDiv = document.createElement('div');
+      labelDiv.className = 'slot-label';
+
+      if (mode === 'plan') {
+        const inp = document.createElement('input');
+        inp.placeholder = s.cat ? CAT_NAMES[s.cat] : '…';
+        inp.value = s.label;
+        inp.addEventListener('change', e => { day[i].label = e.target.value; save(); });
+        inp.addEventListener('click', e => e.stopPropagation());
+        labelDiv.appendChild(inp);
+      } else {
+        const span = document.createElement('div');
+        span.className = 'static' + (!s.label && !s.cat ? ' empty' : '');
+        span.textContent = s.label || (s.cat ? CAT_NAMES[s.cat] : '—');
+        labelDiv.appendChild(span);
+      }
+
+      div.appendChild(time);
+      div.appendChild(catBtn);
+      div.appendChild(labelDiv);
+
+      if (mode === 'track' && s.cat) {
+        const bonus = document.createElement('button');
+        bonus.className = 'slot-bonus' + (s.bonus ? ' active' : '');
+        bonus.textContent = '⚡';
+        bonus.addEventListener('click', e => { e.stopPropagation(); day[i].bonus=!day[i].bonus; save(); render(); });
+        div.appendChild(bonus);
+
+        const done = document.createElement('div');
+        done.className = 'slot-done' + (s.done ? ' checked' : '');
+        done.addEventListener('click', e => { e.stopPropagation(); day[i].done=!day[i].done; save(); render(); });
+        div.appendChild(done);
+      }
+
+      group.appendChild(div);
+    }
+    wrap.appendChild(group);
+  }
+}
+
+function openPicker(i) {
+  activeSlot = i;
+  const day = getDay(currentDate);
+  document.getElementById('sheet-info').textContent = slotTime(i) + ' – ' + slotTime(i+1);
+  document.getElementById('cat-sheet').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+}
+
+function closePicker() {
+  document.getElementById('cat-sheet').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+  activeSlot = null;
+}
+
+function assignCat(cat) {
+  if (activeSlot === null) return;
+  const day = getDay(currentDate);
+  day[activeSlot].cat = cat;
+  if (!cat) { day[activeSlot].done = false; day[activeSlot].bonus = false; }
+  save(); closePicker(); render();
+}
+
+function fillRemaining(cat) {
+  const day = getDay(currentDate);
+  day.forEach(s => { if (!s.cat) s.cat = cat; });
+  save(); closePicker(); render();
+}
+
+function changeDay(delta) {
+  currentDate = new Date(currentDate.getTime() + delta * 86400000);
+  activeFilter = null;
+  render();
+}
+
+function goToday() {
+  currentDate = new Date();
+  currentDate.setHours(0,0,0,0);
+  activeFilter = null;
+  render();
+}
+
+function setMode(m) {
+  mode = m;
+  document.getElementById('btn-plan').className = m === 'plan' ? 'active' : '';
+  document.getElementById('btn-track').className = m === 'track' ? 'active' : '';
+  render();
+}
+
+function toggleFilter(cat) {
+  activeFilter = activeFilter === cat ? null : cat;
+  render();
+}
+
+function save() {
+  try { localStorage.setItem('eudaimonia-v1', JSON.stringify(allData)); } catch(e) {}
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem('eudaimonia-v1');
+    if (raw) allData = JSON.parse(raw);
+  } catch(e) {}
+  render();
+}
+
+// scroll to current hour on load
+function scrollToCurrent() {
+  const now = new Date();
+  const h = now.getHours();
+  const groups = document.querySelectorAll('.hour-group');
+  if (groups[h]) {
+    groups[h].scrollIntoView({block:'start'});
+    document.getElementById('slots-wrap').scrollTop -= 10;
+  }
+}
+
+load();
+setTimeout(scrollToCurrent, 100);
+</script>
+</body>
+</html>
