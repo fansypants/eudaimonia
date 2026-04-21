@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Eudaimonia">
+  <meta name="theme-color" content="#FEF7FF" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#141218" media="(prefers-color-scheme: dark)">
+  <title>Eudaimonia</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600&family=Google+Sans+Display:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    :root {
+      --pri: #6750A4; --pri-c: #EADDFF; --pri-on-c: #21005D;
+      --bg: #FEF7FF; --sur-c: #F3EDF7; --sur-ch: #ECE6F0; --sur-chh: #E6E0E9;
+      --on-sur: #1C1B1F; --on-sur-v: #49454F; --out: #79747E; --out-v: #CAC4D0;
+      --J: #1565C0; --J-c: #D3E4FF; --J-bg: #EBF2FF; --J-txt: #001B41;
+      --G: #1B6E3D; --G-c: #C2EDCE; --G-bg: #E8F5EC; --G-txt: #002110;
+      --R: #B3261E; --R-c: #FFDAD6; --R-bg: #FFF0EE; --R-txt: #410002;
+      --S: #4527A0; --S-c: #E8DEFF; --S-bg: #F3EEFF; --S-txt: #1A005E;
+      --empty: #E6E0E9; --font: 'Google Sans', sans-serif;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --pri: #D0BCFF; --pri-c: #4F378B; --pri-on-c: #EADDFF;
+        --bg: #141218; --sur-c: #211F26; --sur-ch: #2B2930; --sur-chh: #36343B;
+        --on-sur: #E6E1E5; --on-sur-v: #CAC4D0; --out: #938F99; --out-v: #49454F;
+        --J: #A8C7FA; --J-c: #0A2F6B; --J-bg: #061C45; --J-txt: #D3E4FF;
+        --G: #86EFAC; --G-c: #0B3D22; --G-bg: #052515; --G-txt: #C2EDCE;
+        --R: #FFB4AB; --R-c: #680000; --R-bg: #410002; --R-txt: #FFDAD6;
+        --S: #CABEFF; --S-c: #2C006A; --S-bg: #1A0040; --S-txt: #E8DEFF;
+        --empty: #36343B;
+      }
+    }
+
+    html, body { height: 100%; background: var(--bg); color: var(--on-sur); font-family: var(--font); overscroll-behavior: none; }
+    .app { max-width: 900px; margin: 0 auto; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+
+    /* ── Header ── */
+    .header { padding: 14px 16px 0; flex-shrink: 0; }
+    .top-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .app-title { font-family: 'Google Sans Display', sans-serif; font-size: 22px; font-weight: 400; }
+
+    /* kbd hint */
+    .kbd-hint { font-size: 11px; color: var(--out); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .kbd { display: inline-flex; align-items: center; justify-content: center; background: var(--sur-ch); border: 1px solid var(--out-v); border-radius: 5px; font-size: 10px; font-weight: 600; padding: 1px 5px; color: var(--on-sur-v); min-width: 20px; }
+
+    /* Date nav */
+    .date-row { display: flex; align-items: center; gap: 4px; margin-bottom: 12px; }
+    .date-arrow { width: 36px; height: 36px; border-radius: 50%; border: none; background: transparent; color: var(--on-sur-v); font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .date-arrow:active { background: var(--sur-ch); }
+    .date-center { flex: 1; text-align: center; }
+    .date-main { font-size: 16px; font-weight: 500; }
+    .today-pill { display: inline-block; font-size: 11px; color: var(--pri); background: var(--pri-c); border-radius: 12px; padding: 2px 10px; margin-top: 2px; cursor: pointer; border: none; font-family: var(--font); font-weight: 500; }
+
+    /* Overview bar */
+    .day-overview { margin-bottom: 10px; }
+    .overview-wrap { position: relative; height: 44px; border-radius: 10px; overflow: hidden; background: var(--sur-chh); cursor: pointer; }
+    .overview-canvas { display: block; width: 100%; height: 100%; }
+    .overview-needle { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--R); border-radius: 1px; pointer-events: none; display: none; }
+    .overview-labels { display: flex; justify-content: space-between; padding: 2px 2px 0; }
+    .overview-labels span { font-size: 9px; color: var(--out); font-weight: 500; }
+
+    /* Summary */
+    .summary-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; margin-bottom: 10px; }
+    .cat-card { border-radius: 12px; padding: 7px 4px; text-align: center; cursor: pointer; border: 1.5px solid transparent; transition: transform 0.15s; }
+    .cat-card:active { transform: scale(0.94); }
+    .cat-card.J { background: var(--J-bg); border-color: var(--J-c); }
+    .cat-card.G { background: var(--G-bg); border-color: var(--G-c); }
+    .cat-card.R { background: var(--R-bg); border-color: var(--R-c); }
+    .cat-card.S { background: var(--S-bg); border-color: var(--S-c); }
+    .cat-card.active-filter.J { border-color: var(--J); border-width: 2px; }
+    .cat-card.active-filter.G { border-color: var(--G); border-width: 2px; }
+    .cat-card.active-filter.R { border-color: var(--R); border-width: 2px; }
+    .cat-card.active-filter.S { border-color: var(--S); border-width: 2px; }
+    .cat-lbl { font-size: 9px; font-weight: 600; letter-spacing: 0.4px; text-transform: uppercase; margin-bottom: 2px; }
+    .cat-card.J .cat-lbl { color: var(--J); }
+    .cat-card.G .cat-lbl { color: var(--G); }
+    .cat-card.R .cat-lbl { color: var(--R); }
+    .cat-card.S .cat-lbl { color: var(--S); }
+    .cat-hrs { font-size: 11px; font-weight: 600; }
+    .cat-card.J .cat-hrs { color: var(--J-txt); }
+    .cat-card.G .cat-hrs { color: var(--G-txt); }
+    .cat-card.R .cat-hrs { color: var(--R-txt); }
+    .cat-card.S .cat-hrs { color: var(--S-txt); }
+
+    /* Multi-select toolbar */
+    .select-bar { display: none; align-items: center; gap: 8px; padding: 6px 0 8px; }
+    .select-bar.visible { display: flex; }
+    .select-count { font-size: 13px; font-weight: 500; color: var(--on-sur); flex: 1; }
+    .sel-btn { padding: 5px 12px; border-radius: 20px; border: none; cursor: pointer; font-size: 12px; font-weight: 600; font-family: var(--font); transition: transform 0.1s; }
+    .sel-btn:active { transform: scale(0.92); }
+    .sel-btn.J { background: var(--J-c); color: var(--J-txt); }
+    .sel-btn.G { background: var(--G-c); color: var(--G-txt); }
+    .sel-btn.R { background: var(--R-c); color: var(--R-txt); }
+    .sel-btn.S { background: var(--S-c); color: var(--S-txt); }
+    .sel-btn.del { background: var(--sur-chh); color: var(--out); }
+    .sel-cancel { padding: 5px 10px; border-radius: 20px; border: 1px solid var(--out-v); background: transparent; font-size: 12px; color: var(--on-sur-v); cursor: pointer; font-family: var(--font); }
+
+    .divider { height: 1px; background: var(--out-v); opacity: 0.4; margin-bottom: 4px; }
+
+    /* Col headers */
+    .col-headers-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1px; flex-shrink: 0; }
+    .col-headers { display: flex; align-items: center; padding: 3px 8px 4px; gap: 6px; background: var(--bg); }
+    .col-headers:first-child { border-right: 1px solid var(--out-v); }
+    .ch { font-size: 9px; font-weight: 600; color: var(--out); letter-spacing: 0.3px; text-transform: uppercase; }
+    .ch-time { min-width: 30px; }
+    .ch-pill { width: 22px; text-align: center; }
+    .ch-arr { width: 14px; text-align: center; }
+    .ch-label { flex: 1; }
+
+    /* Two-column slot grid */
+    .slots-outer { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+    .slots-columns { flex: 1; overflow: hidden; display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+    .slots-col { overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: 80px; border-right: 1px solid var(--out-v); }
+    .slots-col:last-child { border-right: none; }
+    .slots-col::-webkit-scrollbar { display: none; }
+
+    /* Sync scroll: we scroll both columns together */
+
+    .hour-header { display: flex; align-items: center; gap: 8px; padding: 6px 8px 2px; position: sticky; top: 0; background: var(--bg); z-index: 10; }
+    .hour-label { font-size: 10px; font-weight: 600; color: var(--on-sur-v); min-width: 30px; }
+    .hour-line { flex: 1; height: 1px; background: var(--out-v); opacity: 0.3; }
+
+    /* Night block */
+    .night-block { display: flex; align-items: center; gap: 8px; padding: 8px 10px; cursor: pointer; background: var(--sur-c); margin: 4px 8px; border-radius: 10px; border: 1px solid var(--out-v); opacity: 0.75; }
+    .night-block:active { opacity: 0.45; }
+    .night-icon { font-size: 13px; }
+    .night-text { flex: 1; font-size: 12px; color: var(--on-sur-v); font-weight: 500; }
+    .night-arrow { font-size: 12px; color: var(--out); transition: transform 0.2s; }
+    .night-arrow.open { transform: rotate(90deg); }
+    .night-slots { overflow: hidden; max-height: 0; transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1); }
+    .night-slots.open { max-height: 3000px; }
+
+    /* Slot row */
+    .slot { display: flex; align-items: center; gap: 6px; padding: 3px 8px; min-height: 34px; cursor: pointer; transition: background 0.1s; position: relative; }
+    .slot:active { background: var(--sur-c); }
+    .slot.filtered-out { opacity: 0.1; pointer-events: none; }
+    .slot.mismatch { background: color-mix(in srgb, var(--R-bg) 40%, transparent); }
+    .slot.selected { background: var(--pri-c) !important; outline: 2px solid var(--pri); outline-offset: -2px; border-radius: 6px; }
+    @media (prefers-color-scheme: dark) {
+      .slot.selected { background: var(--pri-c) !important; outline-color: var(--pri); }
+    }
+
+    .slot-time { font-size: 10px; font-weight: 500; color: var(--on-sur-v); min-width: 30px; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+    .slot-time.now { color: var(--R); font-weight: 700; }
+
+    .pill { width: 22px; height: 22px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; flex-shrink: 0; cursor: pointer; border: none; transition: transform 0.1s; user-select: none; }
+    .pill:active { transform: scale(0.82); }
+    .pill.empty { background: var(--sur-ch); color: var(--out); border: 1px dashed var(--out-v); font-weight: 400; font-size: 13px; }
+    .pill.J { background: var(--J-c); color: var(--J-txt); }
+    .pill.G { background: var(--G-c); color: var(--G-txt); }
+    .pill.R { background: var(--R-c); color: var(--R-txt); }
+    .pill.S { background: var(--S-c); color: var(--S-txt); }
+
+    .slot-arr { font-size: 11px; color: var(--out-v); flex-shrink: 0; width: 14px; text-align: center; }
+    .slot-arr.match { color: var(--G); font-size: 12px; }
+    .slot-arr.mismatch { color: var(--R); }
+
+    .slot-label { flex: 1; min-width: 0; overflow: hidden; }
+    .slot-label input { width: 100%; background: transparent; border: none; outline: none; font-size: 12px; font-family: var(--font); color: var(--on-sur); }
+    .slot-label input::placeholder { color: var(--out); }
+
+    /* Now line */
+    .now-line { display: flex; align-items: center; padding: 1px 8px 1px 6px; }
+    .now-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--R); flex-shrink: 0; }
+    .now-bar { flex: 1; height: 2px; background: var(--R); opacity: 0.4; }
+
+    /* pick target indicator in selected mode */
+    .pick-target-bar { display: none; flex-shrink: 0; align-items: center; gap: 8px; padding: 4px 0 8px; font-size: 11px; color: var(--on-sur-v); }
+    .pick-target-bar.visible { display: flex; }
+    .ptb-btn { padding: 3px 12px; border-radius: 16px; border: 1.5px solid var(--out-v); background: transparent; font-size: 11px; font-weight: 500; font-family: var(--font); cursor: pointer; color: var(--on-sur-v); }
+    .ptb-btn.active { background: var(--pri-c); border-color: var(--pri); color: var(--pri-on-c); }
+
+    /* ── Bottom sheet ── */
+    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 90; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
+    .overlay.open { opacity: 1; pointer-events: all; }
+    .sheet { position: fixed; bottom: 0; left: 0; right: 0; max-width: 480px; margin: 0 auto; background: var(--sur-c); border-radius: 28px 28px 0 0; padding: 12px 20px 44px; z-index: 100; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.32,0.72,0,1); }
+    .sheet.open { transform: translateY(0); }
+    .sheet-handle { width: 32px; height: 4px; border-radius: 99px; background: var(--out-v); margin: 0 auto 14px; }
+    .sheet-title { font-size: 14px; font-weight: 600; color: var(--on-sur); text-align: center; margin-bottom: 2px; }
+    .sheet-sub { font-size: 11px; color: var(--out); text-align: center; margin-bottom: 16px; }
+    .cat-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 10px; }
+    .cpick { border-radius: 14px; padding: 14px 4px 10px; border: none; cursor: pointer; font-family: var(--font); text-align: center; transition: transform 0.12s; }
+    .cpick:active { transform: scale(0.92); }
+    .cpick .cl { font-size: 18px; font-weight: 700; display: block; margin-bottom: 4px; }
+    .cpick .cn { font-size: 11px; font-weight: 500; }
+    .cpick.J { background: var(--J-c); color: var(--J-txt); }
+    .cpick.G { background: var(--G-c); color: var(--G-txt); }
+    .cpick.R { background: var(--R-c); color: var(--R-txt); }
+    .cpick.S { background: var(--S-c); color: var(--S-txt); }
+    .cpick.clr { background: var(--sur-chh); color: var(--on-sur-v); }
+    .sheet-div { height: 1px; background: var(--out-v); margin: 12px 0; opacity: 0.4; }
+    .bulk-lbl { font-size: 12px; color: var(--on-sur-v); margin-bottom: 10px; font-weight: 500; }
+    .bulk-row { display: flex; gap: 8px; }
+    .bbtn { flex: 1; padding: 10px 4px; border: 1.5px solid; border-radius: 12px; font-size: 12px; font-weight: 500; font-family: var(--font); cursor: pointer; background: transparent; }
+    .bbtn:active { opacity: 0.65; }
+    .bbtn.J { border-color: var(--J); color: var(--J); }
+    .bbtn.G { border-color: var(--G); color: var(--G); }
+    .bbtn.S { border-color: var(--S); color: var(--S); }
+  </style>
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js';
+    import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js';
+    import { getFirestore, doc, setDoc, getDoc, collection, getDocs } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCw3n1nHkDbN1vdDiG5Q6kQz5-d_98M14s",
+      authDomain: "eudaimonia-2ea7e.firebaseapp.com",
+      projectId: "eudaimonia-2ea7e",
+      storageBucket: "eudaimonia-2ea7e.firebasestorage.app",
+      messagingSenderId: "404930640617",
+      appId: "1:404930640617:web:74afeb6ea7f65d23788e78"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    window._db = db;
+    window._auth = auth;
+    window._firestoreFns = { doc, setDoc, getDoc, collection, getDocs };
+
+    window._googleLogin = async () => {
+      const provider = new GoogleAuthProvider();
+      try { await signInWithPopup(auth, provider); } catch(e) { console.warn('Login failed', e); }
+    };
+
+    onAuthStateChanged(auth, user => {
+      if(user){
+        window._uid = user.uid;
+        window._userEmail = user.email;
+        const btn = document.getElementById('login-btn');
+        if(btn) btn.textContent = user.displayName || user.email || 'Angemeldet';
+        // Firebase is ready – now load all cloud data
+        if(window._loadFromCloud) window._loadFromCloud();
+      } else {
+        window._uid = null;
+        const btn = document.getElementById('login-btn');
+        if(btn) btn.textContent = 'Mit Google anmelden';
+        setSyncStatus('');
+      }
+    });
+  </script>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="top-row">
+      <span class="app-title">Eudaimonia</span>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <span id="sync-status" style="font-size:11px;color:var(--out);display:none;"></span>
+      <button id="login-btn" onclick="window._googleLogin && window._googleLogin()" style="font-size:11px;font-weight:500;padding:6px 12px;border-radius:20px;border:1.5px solid var(--out-v);background:transparent;color:var(--on-sur-v);cursor:pointer;font-family:var(--font);white-space:nowrap;">Mit Google anmelden</button>
+    </div>
+      <div class="kbd-hint">
+        <span class="kbd">J</span><span class="kbd">G</span><span class="kbd">R</span><span class="kbd">S</span>
+        <span style="margin:0 2px">·</span>
+        <span class="kbd">Entf</span> löschen
+      </div>
+    </div>
+
+    <div class="date-row">
+      <button class="date-arrow" onclick="changeDay(-1)">&#8249;</button>
+      <div class="date-center">
+        <div class="date-main" id="date-label"></div>
+        <button class="today-pill" id="today-pill" onclick="goToday()" style="display:none">Heute</button>
+      </div>
+      <button class="date-arrow" onclick="changeDay(1)">&#8250;</button>
+    </div>
+
+    <div class="day-overview">
+      <div class="overview-wrap" id="overview-wrap" onclick="onOverviewClick(event)">
+        <canvas class="overview-canvas" id="overview-canvas"></canvas>
+        <div class="overview-needle" id="overview-needle"></div>
+      </div>
+      <div class="overview-labels">
+        <span>0</span><span>3</span><span>6</span><span>9</span>
+        <span>12</span><span>15</span><span>18</span><span>21</span><span>24</span>
+      </div>
+    </div>
+
+    <div class="summary-row">
+      <div class="cat-card J" onclick="toggleFilter('J')"><div class="cat-lbl">Job</div><div class="cat-hrs" id="sum-J">0h</div></div>
+      <div class="cat-card G" onclick="toggleFilter('G')"><div class="cat-lbl">Good</div><div class="cat-hrs" id="sum-G">0h</div></div>
+      <div class="cat-card R" onclick="toggleFilter('R')"><div class="cat-lbl">Rotting</div><div class="cat-hrs" id="sum-R">0h</div></div>
+      <div class="cat-card S" onclick="toggleFilter('S')"><div class="cat-lbl">Sleep</div><div class="cat-hrs" id="sum-S">0h</div></div>
+    </div>
+
+    <!-- Multi-select bar -->
+    <div class="select-bar" id="select-bar">
+      <span class="select-count" id="select-count">0 ausgewählt</span>
+      <div class="pick-target-bar visible" id="ptb">
+        <button class="ptb-btn active" id="ptb-plan" onclick="setPickTarget('plan')">Soll</button>
+        <button class="ptb-btn" id="ptb-actual" onclick="setPickTarget('actual')">Ist</button>
+      </div>
+      <button class="sel-btn J" onclick="applyToSelected('J')">J</button>
+      <button class="sel-btn G" onclick="applyToSelected('G')">G</button>
+      <button class="sel-btn R" onclick="applyToSelected('R')">R</button>
+      <button class="sel-btn S" onclick="applyToSelected('S')">S</button>
+      <button class="sel-btn del" onclick="applyToSelected('')">✕</button>
+      <button class="sel-cancel" onclick="clearSelection()">Abbruch</button>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="col-headers-row">
+      <div class="col-headers">
+        <div class="ch ch-time">Zeit</div>
+        <div class="ch ch-pill">Soll</div>
+        <div class="ch ch-arr"></div>
+        <div class="ch ch-pill">Ist</div>
+        <div class="ch ch-label">Notiz</div>
+      </div>
+      <div class="col-headers">
+        <div class="ch ch-time">Zeit</div>
+        <div class="ch ch-pill">Soll</div>
+        <div class="ch ch-arr"></div>
+        <div class="ch ch-pill">Ist</div>
+        <div class="ch ch-label">Notiz</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slots-outer">
+    <div class="slots-columns">
+      <div class="slots-col" id="col-left"></div>
+      <div class="slots-col" id="col-right"></div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" onclick="closePicker()"></div>
+<div class="sheet" id="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title" id="sheet-title"></div>
+  <div class="sheet-sub" id="sheet-sub"></div>
+  <div class="cat-grid">
+    <button class="cpick J" onclick="assignCat('J')"><span class="cl">J</span><span class="cn">Job</span></button>
+    <button class="cpick G" onclick="assignCat('G')"><span class="cl">G</span><span class="cn">Good</span></button>
+    <button class="cpick R" onclick="assignCat('R')"><span class="cl">R</span><span class="cn">Rotting</span></button>
+    <button class="cpick S" onclick="assignCat('S')"><span class="cl">S</span><span class="cn">Sleep</span></button>
+  </div>
+  <button class="cpick clr" onclick="assignCat('')" style="width:100%;margin-bottom:4px;"><span class="cl" style="font-size:15px">&#10005;</span><span class="cn">Leeren</span></button>
+  <div class="sheet-div"></div>
+  <div class="bulk-lbl">Alle leeren Soll-Slots befüllen:</div>
+  <div class="bulk-row">
+    <button class="bbtn J" onclick="fillRemaining('J')">&#8594; Job</button>
+    <button class="bbtn G" onclick="fillRemaining('G')">&#8594; Good</button>
+    <button class="bbtn S" onclick="fillRemaining('S')">&#8594; Sleep</button>
+  </div>
+</div>
+
+<script>
+const CATS = ['J','G','R','S'];
+const CAT_NAMES = {J:'Job',G:'Good',R:'Rotting',S:'Sleep'};
+const TOTAL = 96;
+const NIGHT_EARLY = [0,1,2,3,4];
+const NIGHT_LATE  = [22,23];
+const NIGHT_SET   = new Set([...NIGHT_EARLY,...NIGHT_LATE]);
+
+const PLAN_C = { light:{J:'#D3E4FF',G:'#C2EDCE',R:'#FFDAD6',S:'#E8DEFF',empty:'#E6E0E9'}, dark:{J:'#0A2F6B',G:'#0B3D22',R:'#680000',S:'#2C006A',empty:'#36343B'} };
+const ACT_C  = { light:{J:'#1565C0',G:'#1B6E3D',R:'#B3261E',S:'#4527A0'}, dark:{J:'#A8C7FA',G:'#86EFAC',R:'#FFB4AB',S:'#CABEFF'} };
+
+let currentDate = new Date(); currentDate.setHours(0,0,0,0);
+let allData = {};
+let activeSlot = null;
+let pickTarget = 'plan';   // single-slot picker target
+let bulkTarget = 'plan';   // multi-select target
+let activeFilter = null;
+let selected = new Set();  // selected slot indices
+let nightOpen = false;
+
+function isDark() { return window.matchMedia('(prefers-color-scheme: dark)').matches; }
+function dateKey(d) { return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function isToday(d) { return dateKey(d)===dateKey(new Date()); }
+
+function getDay(d) {
+  const k = dateKey(d);
+  if (!allData[k]) allData[k] = Array.from({length:TOTAL},()=>({plan:'',actual:'',label:''}));
+  allData[k] = allData[k].map(s=>{
+    if (s.cat!==undefined) return {plan:s.cat,actual:'',label:s.label||''};
+    if (s.plan===undefined) return {plan:'',actual:'',label:s.label||''};
+    return s;
+  });
+  return allData[k];
+}
+
+function slotTime(i) { const m=i*15; return String(Math.floor(m/60)%24).padStart(2,'0')+':'+String(m%60).padStart(2,'0'); }
+function fmtH(n) { const h=n*0.25; if(h===Math.floor(h)) return h+'h'; return h.toFixed((h%1===0.25||h%1===0.75)?2:1)+'h'; }
+function nowSlotIdx() { const n=new Date(); return n.getHours()*4+Math.floor(n.getMinutes()/15); }
+
+// ── Overview canvas ──
+function drawOverview() {
+  const canvas=document.getElementById('overview-canvas');
+  const wrap=document.getElementById('overview-wrap');
+  const dpr=window.devicePixelRatio||1;
+  const W=wrap.clientWidth, H=wrap.clientHeight;
+  canvas.width=W*dpr; canvas.height=H*dpr;
+  canvas.style.width=W+'px'; canvas.style.height=H+'px';
+  const ctx=canvas.getContext('2d'); ctx.scale(dpr,dpr);
+  const day=getDay(currentDate), dark=isDark();
+  const pc=PLAN_C[dark?'dark':'light'], ac=ACT_C[dark?'dark':'light'];
+  const sw=W/TOTAL, hh=H/2;
+
+  for(let i=0;i<TOTAL;i++){
+    const s=day[i], x=i*sw;
+    ctx.fillStyle=s.plan?pc[s.plan]:pc.empty; ctx.fillRect(x,0,sw+0.5,hh);
+    ctx.fillStyle=s.actual?ac[s.actual]:pc.empty; ctx.fillRect(x,hh,sw+0.5,hh);
+  }
+  ctx.fillStyle=dark?'rgba(255,255,255,0.1)':'rgba(0,0,0,0.08)';
+  for(let h=0;h<=24;h++){ const x=h*(W/24); ctx.fillRect(x-0.5,0,1,h%6===0?H:hh); }
+  ctx.fillStyle=dark?'rgba(255,255,255,0.15)':'rgba(0,0,0,0.12)';
+  ctx.fillRect(0,hh-0.5,W,1);
+
+  const needle=document.getElementById('overview-needle');
+  if(isToday(currentDate)){ needle.style.display='block'; needle.style.left=((nowSlotIdx()/TOTAL)*100).toFixed(2)+'%'; }
+  else needle.style.display='none';
+}
+
+function onOverviewClick(e){
+  const wrap=document.getElementById('overview-wrap');
+  const rect=wrap.getBoundingClientRect();
+  const x=(e.clientX-rect.left)/rect.width;
+  const slotIdx=Math.floor(x*TOTAL), hourIdx=Math.floor(slotIdx/4);
+  const col=hourIdx>=5&&hourIdx<=13 ? 'col-left' : 'col-right';
+  if(NIGHT_SET.has(hourIdx)&&!nightOpen){ nightOpen=true; refreshNight(); }
+  setTimeout(()=>{
+    const cols=document.querySelectorAll('.hour-header');
+    for(const hdr of cols){ if(hdr.dataset.hour==hourIdx){ hdr.scrollIntoView({block:'start',behavior:'smooth'}); break; } }
+  }, nightOpen?350:0);
+}
+
+// ── Selection ──
+function toggleSelect(i){
+  if(selected.has(i)) selected.delete(i);
+  else selected.add(i);
+  updateSelectBar();
+  // re-render only the affected row
+  document.querySelectorAll('.slot[data-idx="'+i+'"]').forEach(el=>{
+    el.classList.toggle('selected', selected.has(i));
+  });
+}
+
+function clearSelection(){
+  selected.clear(); updateSelectBar();
+  document.querySelectorAll('.slot.selected').forEach(el=>el.classList.remove('selected'));
+}
+
+function updateSelectBar(){
+  const bar=document.getElementById('select-bar');
+  const cnt=selected.size;
+  bar.classList.toggle('visible', cnt>0);
+  document.getElementById('select-count').textContent=cnt+' Slot'+(cnt===1?'':'s')+' ausgewählt';
+}
+
+function setPickTarget(t){
+  bulkTarget=t;
+  document.getElementById('ptb-plan').classList.toggle('active',t==='plan');
+  document.getElementById('ptb-actual').classList.toggle('active',t==='actual');
+}
+
+function applyToSelected(cat){
+  if(!selected.size) return;
+  const day=getDay(currentDate);
+  selected.forEach(i=>{
+    if(bulkTarget==='plan') day[i].plan=cat;
+    else day[i].actual=cat;
+  });
+  save(); clearSelection(); render();
+}
+
+// ── Render ──
+function render(){
+  const day=getDay(currentDate), today=isToday(currentDate);
+  const days=['So','Mo','Di','Mi','Do','Fr','Sa'];
+  const months=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+  const d=currentDate;
+  document.getElementById('date-label').textContent=today?'Heute':days[d.getDay()]+', '+d.getDate()+'. '+months[d.getMonth()];
+  document.getElementById('today-pill').style.display=today?'none':'inline-block';
+
+  const pc={J:0,G:0,R:0,S:0}, ac={J:0,G:0,R:0,S:0};
+  day.forEach(s=>{ if(s.plan) pc[s.plan]++; if(s.actual) ac[s.actual]++; });
+  CATS.forEach(c=>{
+    document.getElementById('sum-'+c).textContent=fmtH(ac[c])+' / '+fmtH(pc[c]);
+    document.querySelector('.cat-card.'+c).classList.toggle('active-filter',activeFilter===c);
+  });
+
+  drawOverview();
+
+  const colLeft=document.getElementById('col-left');
+  const colRight=document.getElementById('col-right');
+  colLeft.innerHTML=''; colRight.innerHTML='';
+
+  const ni=today?nowSlotIdx():-1;
+  let nowDoneL=false, nowDoneR=false;
+
+  function makeSlot(i, col){
+    const s=day[i];
+    const filtered=activeFilter&&s.plan!==activeFilter&&s.actual!==activeFilter;
+    const matched=s.plan&&s.actual&&s.plan===s.actual;
+    const mismatched=s.plan&&s.actual&&s.plan!==s.actual;
+    const isSel=selected.has(i);
+
+    const row=document.createElement('div');
+    row.className='slot'+(filtered?' filtered-out':'')+(mismatched?' mismatch':'')+(isSel?' selected':'');
+    row.dataset.idx=i;
+
+    // tap to select (long-press would be ideal but we use tap toggle when bar visible, or toggle via tap)
+    row.addEventListener('click', e=>{
+      // If any selected OR clicking while bar is visible → toggle selection
+      if(selected.size>0){
+        e.stopPropagation(); toggleSelect(i); return;
+      }
+      // else do nothing (pills handle own clicks)
+    });
+    // Long press to start selecting
+    let pressTimer;
+    row.addEventListener('pointerdown', ()=>{ pressTimer=setTimeout(()=>{ toggleSelect(i); },400); });
+    row.addEventListener('pointerup',   ()=>clearTimeout(pressTimer));
+    row.addEventListener('pointermove', ()=>clearTimeout(pressTimer));
+
+    const te=document.createElement('div');
+    te.className='slot-time'+(today&&i===ni?' now':'');
+    te.textContent=slotTime(i);
+    row.appendChild(te);
+
+    const pp=document.createElement('div');
+    pp.className='pill '+(s.plan||'empty');
+    pp.textContent=s.plan||'+';
+    pp.addEventListener('click',e=>{ e.stopPropagation(); if(selected.size>0){toggleSelect(i);return;} openPicker(i,'plan'); });
+    row.appendChild(pp);
+
+    const arr=document.createElement('div');
+    arr.className='slot-arr'+(matched?' match':mismatched?' mismatch':'');
+    arr.textContent=matched?'✓':'→';
+    row.appendChild(arr);
+
+    const ap=document.createElement('div');
+    ap.className='pill '+(s.actual||'empty');
+    ap.textContent=s.actual||'+';
+    ap.addEventListener('click',e=>{ e.stopPropagation(); if(selected.size>0){toggleSelect(i);return;} openPicker(i,'actual'); });
+    row.appendChild(ap);
+
+    const ld=document.createElement('div'); ld.className='slot-label';
+    const inp=document.createElement('input');
+    inp.placeholder=s.plan?CAT_NAMES[s.plan]:'…';
+    inp.value=s.label;
+    inp.addEventListener('change',e=>{ day[i].label=e.target.value; save(); });
+    inp.addEventListener('click',e=>e.stopPropagation());
+    ld.appendChild(inp); row.appendChild(ld);
+    return row;
+  }
+
+  function makeHdrFor(h, container){
+    const hdr=document.createElement('div'); hdr.className='hour-header'; hdr.dataset.hour=h;
+    const ht=document.createElement('span'); ht.className='hour-label'; ht.textContent=String(h).padStart(2,'0')+':00';
+    const hl=document.createElement('div'); hl.className='hour-line';
+    hdr.appendChild(ht); hdr.appendChild(hl); container.appendChild(hdr);
+  }
+
+  function appendHour(h, container, nowDoneRef){
+    makeHdrFor(h, container);
+    for(let q=0;q<4;q++){
+      const i=h*4+q;
+      if(today&&!nowDoneRef.done&&i===ni){
+        const nl=document.createElement('div'); nl.className='now-line';
+        nl.innerHTML='<div class="now-dot"></div><div class="now-bar"></div>';
+        container.appendChild(nl); nowDoneRef.done=true;
+      }
+      container.appendChild(makeSlot(i, container));
+    }
+  }
+
+  function makeNightBlock(hours, label, container, nowDoneRef){
+    const wrapper=document.createElement('div');
+    const toggle=document.createElement('div'); toggle.className='night-block';
+    toggle.innerHTML=`<span class="night-icon">🌙</span><span class="night-text">${label}</span><span class="night-arrow${nightOpen?' open':''}">›</span>`;
+    toggle.addEventListener('click',()=>{ nightOpen=!nightOpen; refreshNight(); });
+    const inner=document.createElement('div'); inner.className='night-slots'+(nightOpen?' open':'');
+    inner.id='night-'+hours[0]+'-'+container.id;
+    hours.forEach(h=>appendHour(h,inner,nowDoneRef));
+    wrapper.appendChild(toggle); wrapper.appendChild(inner);
+    container.appendChild(wrapper);
+  }
+
+  const ndL={done:false}, ndR={done:false};
+
+  // LEFT column: night 00-04, then hours 05-13
+  makeNightBlock(NIGHT_EARLY,'00:00 – 05:00',colLeft,ndL);
+  for(let h=5;h<=13;h++) appendHour(h,colLeft,ndL);
+
+  // RIGHT column: hours 14-21, then night 22-23
+  for(let h=14;h<=21;h++) appendHour(h,colRight,ndR);
+  makeNightBlock(NIGHT_LATE,'22:00 – 24:00',colRight,ndR);
+}
+
+function refreshNight(){
+  document.querySelectorAll('.night-slots').forEach(el=>el.classList.toggle('open',nightOpen));
+  document.querySelectorAll('.night-arrow').forEach(el=>el.classList.toggle('open',nightOpen));
+}
+
+function openPicker(i,target){
+  activeSlot=i; pickTarget=target;
+  document.getElementById('sheet-title').textContent=slotTime(i)+' – '+slotTime(i+1);
+  document.getElementById('sheet-sub').textContent=target==='plan'?'Soll — was hast du geplant?':'Ist — was hast du gemacht?';
+  document.getElementById('sheet').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+}
+function closePicker(){ document.getElementById('sheet').classList.remove('open'); document.getElementById('overlay').classList.remove('open'); activeSlot=null; }
+
+function assignCat(cat){
+  if(activeSlot===null) return;
+  const day=getDay(currentDate);
+  if(pickTarget==='plan') day[activeSlot].plan=cat;
+  else day[activeSlot].actual=cat;
+  save(); closePicker(); render();
+}
+function fillRemaining(cat){
+  const day=getDay(currentDate);
+  day.forEach(s=>{ if(!s.plan) s.plan=cat; });
+  save(); closePicker(); render();
+}
+function changeDay(delta){ currentDate=new Date(currentDate.getTime()+delta*86400000); activeFilter=null; clearSelection(); render(); scrollToNow(); }
+function goToday(){ currentDate=new Date(); currentDate.setHours(0,0,0,0); activeFilter=null; clearSelection(); render(); scrollToNow(); }
+function toggleFilter(cat){ activeFilter=activeFilter===cat?null:cat; render(); }
+
+function setSyncStatus(msg, color){
+  const el=document.getElementById('sync-status');
+  if(!el) return;
+  if(!msg){ el.style.display='none'; return; }
+  el.style.display='inline';
+  el.style.color=color||'var(--out)';
+  el.textContent=msg;
+}
+
+let _saveTimer=null;
+function save(){
+  try{ localStorage.setItem('eudaimonia-v3',JSON.stringify(allData)); }catch(e){}
+  clearTimeout(_saveTimer);
+  setSyncStatus('…');
+  _saveTimer=setTimeout(_saveToCloud,1200);
+}
+
+async function _saveToCloud(){
+  if(!window._db||!window._uid||!window._firestoreFns) return;
+  const {doc,setDoc}=window._firestoreFns;
+  setSyncStatus('↑','var(--out)');
+  try{
+    const keys=Object.keys(allData);
+    await Promise.all(keys.map(k=>
+      setDoc(doc(window._db,'users',window._uid,'days',k),{slots:JSON.stringify(allData[k])})
+    ));
+    setSyncStatus('✓ gespeichert','var(--G)');
+    setTimeout(()=>setSyncStatus(''),2000);
+  }catch(e){
+    console.warn('cloud save fail',e);
+    setSyncStatus('⚠ Fehler','var(--R)');
+  }
+}
+
+async function _loadFromCloud(){
+  if(!window._db||!window._uid||!window._firestoreFns) return;
+  const {collection,getDocs}=window._firestoreFns;
+  setSyncStatus('↓','var(--out)');
+  try{
+    const snap=await getDocs(collection(window._db,'users',window._uid,'days'));
+    if(!snap.empty){
+      snap.forEach(d=>{ try{ allData[d.id]=JSON.parse(d.data().slots); }catch(e){} });
+      try{ localStorage.setItem('eudaimonia-v3',JSON.stringify(allData)); }catch(e){}
+      render();
+    }
+    setSyncStatus('✓ synchronisiert','var(--G)');
+    setTimeout(()=>setSyncStatus(''),3000);
+  }catch(e){
+    console.warn('cloud load fail',e);
+    setSyncStatus('⚠ Fehler','var(--R)');
+  }
+}
+window._loadFromCloud=_loadFromCloud;
+
+function load(){
+  try{ const raw=localStorage.getItem('eudaimonia-v3')||localStorage.getItem('eudaimonia-v2')||localStorage.getItem('eudaimonia-v1'); if(raw) allData=JSON.parse(raw); }catch(e){}
+  render(); scrollToNow();
+  // _loadFromCloud wird von onAuthStateChanged aufgerufen sobald Firebase bereit ist
+}
+function scrollToNow(){
+  if(!isToday(currentDate)) return;
+  setTimeout(()=>{ const nl=document.querySelector('.now-line'); if(nl) nl.scrollIntoView({block:'center',behavior:'smooth'}); },80);
+}
+
+// ── Keyboard shortcuts ──
+document.addEventListener('keydown', e=>{
+  // Don't fire when typing in an input
+  if(e.target.tagName==='INPUT') return;
+  const key=e.key.toUpperCase();
+  if(['J','G','R','S'].includes(key)){
+    e.preventDefault();
+    if(selected.size>0) applyToSelected(key);
+    else if(activeSlot!==null) { assignCat(key); }
+  }
+  if(e.key==='Delete'||e.key==='Backspace'){
+    if(selected.size>0){ e.preventDefault(); applyToSelected(''); }
+    else if(activeSlot!==null){ e.preventDefault(); assignCat(''); }
+  }
+  if(e.key==='Escape'){ clearSelection(); closePicker(); }
+});
+
+window.addEventListener('resize', drawOverview);
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', ()=>render());
+
+load();
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
